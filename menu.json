@@ -1,0 +1,19 @@
+{
+  "button":[
+    {
+      "name":"账号管理",
+      "sub_button":[
+        {
+          "type":"view",
+          "name":"绑定账号",
+          "url":"http://2dc6e914.ngrok.io/users"
+        },
+        {
+          "type":"view",
+          "name":"解除绑定",
+          "url":"http://2dc6e914.ngrok.io/users"
+        }
+      ]
+    }
+  ]
+}
