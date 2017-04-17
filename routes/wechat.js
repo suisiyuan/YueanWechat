@@ -11,14 +11,14 @@ var parser = new XMLJS.Parser();
 var builder = new XMLJS.Builder();
 
 var request = require('request');
+var moment = require('moment');
+
 
 var WechatAPI = require('wechat-api');
 var api = new WechatAPI(config.appid, config.appsecret);
 
 
 var database = require('../database');
-
-
 
 
 // api.getAccessToken(function (err, token) {
@@ -140,6 +140,7 @@ var EventFunction = {
     xml = builder.buildObject(xml);
     res.send(xml);
   },
+
   // 退订处理
   unsubscribe: function(result, req, res) {
     console.log('unsubscribe');
@@ -162,6 +163,108 @@ var EventFunction = {
   }
 };
 
+
+
+
+// 接受服务器推送
+router.post('/message', function (req, res) {
+  res.send("success");
+  var imei = req.query.imei;
+  var cmd = req.query.cmd;
+
+  database.selectData(imei, function (error, result) {
+    // 如果有结果的话
+    if (result)
+    {
+      (PushMessageFunction[cmd]||function(){})(result.openid, req, res);
+    }
+  });
+});
+
+
+// 根据推送的命令发送相应的模板消息
+var PushMessageFunction = {
+  // 自动落锁
+  0: function (openid, req, res) {
+    data.keyword1.value = "自动落锁";
+    data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
+    api.sendTemplate(openid, templateId, url, data, function(err, callback) {
+      console.log(callback);
+    });
+  },
+  // 防盗开启
+  1: function (openid, req, res) {
+    data.keyword1.value = "防盗开启";
+    ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
+    api.sendTemplate(openid, templateId, url, data, function(err, callback) {
+      console.log(callback);
+    });
+  },
+  // 防盗关闭
+  2: function (openid, req, res) {
+    data.keyword1.value = "防盗关闭";
+    ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
+    api.sendTemplate(openid, templateId, url, data, function(err, callback) {
+      console.log(callback);
+    });
+  },
+  // 设备上线
+  3: function (openid, req, res) {
+    data.keyword1.value = "设备上线";
+    ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
+    api.sendTemplate(openid, templateId, url, data, function(err, callback) {
+      console.log(callback);
+    });
+  },
+  // 设备离线
+  4: function (openid, req, res) {
+    data.keyword1.value = "设备离线";
+    ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
+    api.sendTemplate(openid, templateId, url, data, function(err, callback) {
+      console.log(callback);
+    });
+  },
+  // 移动告警
+  5: function (openid, req, res) {
+    data.keyword1.value = "移动告警";
+    ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
+    api.sendTemplate(openid, templateId, url, data, function(err, callback) {
+      console.log(callback);
+    });
+  },
+  // 断电告警
+  6: function (openid, req, res) {
+    data.keyword1.value = "断电告警";
+    ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
+    api.sendTemplate(openid, templateId, url, data, function(err, callback) {
+      console.log(callback);
+    });
+  },
+  // 电门开启
+  7: function (openid, req, res) {
+    data.keyword1.value = "电门开启 ";
+    ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
+    api.sendTemplate(openid, templateId, url, data, function(err, callback) {
+      console.log(callback);
+    });
+  },
+  // 电门关闭
+  8: function (openid, req, res) {
+    data.keyword1.value = "电门关闭";
+    ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
+    api.sendTemplate(openid, templateId, url, data, function(err, callback) {
+      console.log(callback);
+    });
+  },
+  // 低电压告警
+  9: function (openid, req, res) {
+    data.keyword1.value = "低电压告警";
+    ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
+    api.sendTemplate(openid, templateId, url, data, function(err, callback) {
+      console.log(callback);
+    });
+  }
+};
 
 
 

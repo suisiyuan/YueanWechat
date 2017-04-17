@@ -13,58 +13,46 @@ var database;
 // 连接数据库
 MongoClient.connect(url, function(err, db) {
   console.log('连接成功！');
+  // 将数据库赋值给全局变量
   database = db;
 
-  // get collection
-  var col = database.collection('users');
+  // 获取collection
+  var collection = database.collection('users');
+  // 创建唯一index
+  collection.createIndex({imei:1, wechat:2}, {unique:true, background:true, w:1, name:"test"}, function (error, result) {
 
+  });
 
 });
 
 // 导出添加函数
-exports.insertData = function (imei, openid) {
+exports.insertData = function (imei, openid, callback) {
   var collection = database.collection('users');
-  var data = {"imei":imei, "openid":openid, "addTime":new Date()};
+  var doc = {"imei":imei, "openid":openid, "addTime":new Date()};
 
-  collection.insertOne(data, function (error, result) {
-    if (error)
+  exports.selectData(imei, function (error, result) {
+    if (!result)
     {
-      console.log(error);
+      collection.insertOne(doc, {w:1}, callback);
     }
-    else
-    {
-      console.log(result.ops);
-    }
-    database.close();
   });
 };
-
 
 // 导出查询函数
 exports.selectData = function (imei, callback) {
   var collection = database.collection('users');
-
+  collection.findOne({imei:imei}, {fields:{openid:1}}, callback);
 };
 
 
-// 到处更新函数
-exports.updateData = function (imei, openid) {
+// 导出更新函数
+exports.updateData = function (imei, openid, callback) {
   var collection = database.collection('users');
-
+  collection.findOneAndUpdate({imei:imei}, {$set: {openid:openid}}, {upsert: true}, callback);
 };
-
 
 // 导出删除函数
-exports.deleteData = function (imei) {
-  var col = database.collection('users');
-  col.findOneAndDelete({imei:imei}, function (error, result) {
-    if (error)
-    {
-      console.log(error);
-    }
-    else
-    {
-      console.log(result.value);
-    }
-  })
+exports.deleteData = function (imei, callback) {
+  var collection = database.collection('users');
+  collection.findOneAndDelete({imei:imei}, callback);
 };
