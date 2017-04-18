@@ -44,6 +44,11 @@ exports.selectData = function (imei, callback) {
   collection.findOne({imei:imei}, {fields:{openid:1}}, callback);
 };
 
+exports.queryOpenid = function (openid, callback) {
+  var collection = database.collection('users');
+  collection.findOne({openid:openid}, {fields:{imei:1}}, callback);
+};
+
 
 // 导出更新函数
 exports.updateData = function (imei, openid, callback) {
@@ -55,4 +60,9 @@ exports.updateData = function (imei, openid, callback) {
 exports.deleteData = function (imei, callback) {
   var collection = database.collection('users');
   collection.findOneAndDelete({imei:imei}, callback);
+};
+
+exports.deleteOpenid = function (openid, callback) {
+  var collection = database.collection('users');
+  collection.findOneAndDelete({openid:openid}, callback);
 };

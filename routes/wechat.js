@@ -20,6 +20,10 @@ var api = new WechatAPI(config.appid, config.appsecret);
 
 var database = require('../database');
 
+var menu = JSON.stringify(require('../menu.json'));
+api.createMenu(menu, function (error, result) {
+  console.log(result);
+});
 
 // api.getAccessToken(function (err, token) {
 //   console.log(err);
@@ -108,7 +112,13 @@ function ResponseMessage(req, res) {
         }
         // 如果是文本
         else if (messageType === 'text') {
-          EventFunction.responseNews(body, res);
+          // EventFunction.responseNews(body, res);
+          var content = body.Content[0];
+          var result = content.match('/\d+/');
+          console.log(content);
+          console.log(result);
+
+          res.send('success');
         }
         else {
           res.send('');
@@ -147,6 +157,90 @@ var EventFunction = {
     console.log(result.FromUserName);
     res.send('success');
   },
+
+  // 点击事件
+  CLICK: function(result, req, res) {
+    console.log('click');
+
+    if (result.EventKey[0] === 'BIND')
+    {
+      database.queryOpenid(result.FromUserName[0], function (error, answer) {
+        if (answer)
+        {
+          var xml = {xml: {
+            ToUserName: result.FromUserName,
+            FromUserName: result.ToUserName,
+            CreateTime: + new Date(),
+            MsgType: 'text',
+            Content: '已经绑定设备：' + answer.imei
+          }};
+          xml = builder.buildObject(xml);
+          res.send(xml);
+        }
+        else
+        {
+          var xml = {xml: {
+            ToUserName: result.FromUserName,
+            FromUserName: result.ToUserName,
+            CreateTime: + new Date(),
+            MsgType: 'text',
+            Content: '回复"+imei号"以绑定设备。'
+          }};
+          xml = builder.buildObject(xml);
+          res.send(xml);
+        }
+      });
+    }
+    else if (result.EventKey[0] === 'UNBIND')
+    {
+      database.queryOpenid(result.FromUserName[0], function (error, answer) {
+        if (answer)
+        {
+          database.deleteOpenid(result.FromUserName[0]);
+          var xml = {xml: {
+            ToUserName: result.FromUserName,
+            FromUserName: result.ToUserName,
+            CreateTime: + new Date(),
+            MsgType: 'text',
+            Content: '解除绑定成功！'
+          }};
+          xml = builder.buildObject(xml);
+          res.send(xml);
+        }
+        else
+        {
+          var xml = {xml: {
+            ToUserName: result.FromUserName,
+            FromUserName: result.ToUserName,
+            CreateTime: + new Date(),
+            MsgType: 'text',
+            Content: '暂未绑定设备。'
+          }};
+          xml = builder.buildObject(xml);
+          res.send(xml);
+        }
+      });
+    }
+
+
+
+    // var xml = {xml: {
+    //   ToUserName: result.FromUserName,
+    //   FromUserName: result.ToUserName,
+    //   CreateTime: + new Date(),
+    //   MsgType: 'news',
+    //   ArticleCount: 1,
+    //   Articles: {
+    //     item: {
+    //       Titles: "test",
+    //       Description: "test",
+    //       Url: "www.baidu.com"
+    //     }
+    //   }
+    // }};
+    // xml = builder.buildObject(xml);
+  },
+
   VIEW: function () {
     console.log('view');
   },
