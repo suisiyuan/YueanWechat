@@ -22,18 +22,9 @@ var database = require('../database');
 
 var menu = JSON.stringify(require('../menu.json'));
 api.createMenu(menu, function (error, result) {
-  console.log(result);
+
 });
 
-// api.getAccessToken(function (err, token) {
-//   console.log(err);
-//   console.log(token);
-// });
-//
-// var menu = JSON.stringify(require('../menu.json'));
-// api.createMenu(menu, function (err, result) {
-//   console.log(result);
-// });
 
 var templateId = 'TXE8zpyj1lYmkuJh8Dde3Q3jNg6z4G0JEcuaQUQOSPA';
 var url = 'http://weixin.qq.com/download';
@@ -51,7 +42,7 @@ var data = {
     "color":"#173177"
   },
   "keyword3": {
-    "value":"华中科技大学启明学院704",
+    "value":"",
     "color":"#173177"
   },
   "remark":{
@@ -114,11 +105,58 @@ function ResponseMessage(req, res) {
         else if (messageType === 'text') {
           // EventFunction.responseNews(body, res);
           var content = body.Content[0];
-          var result = content.match('/\d+/');
-          console.log(content);
-          console.log(result);
-
-          res.send('success');
+          var matchResult = content.match(/\+\d{15}/);
+          if (matchResult)
+          {
+            var imei = content.substring(matchResult.index+1);
+            database.queryImei(imei, function (error, queryResult) {
+              if (queryResult)
+              {
+                var xml = {xml: {
+                  ToUserName: body.FromUserName,
+                  FromUserName: body.ToUserName,
+                  CreateTime: + new Date(),
+                  MsgType: 'text',
+                  Content: '此设备已经被绑定'
+                }};
+                xml = builder.buildObject(xml);
+                res.send(xml);
+              }
+              else
+              {
+                database.queryOpenid(body.FromUserName[0], function (error, result) {
+                  if (result)
+                  {
+                    var xml = {xml: {
+                      ToUserName: body.FromUserName,
+                      FromUserName: body.ToUserName,
+                      CreateTime: + new Date(),
+                      MsgType: 'text',
+                      Content: '已经绑定设备：' + result.imei
+                    }};
+                    xml = builder.buildObject(xml);
+                    res.send(xml);
+                  }
+                  else
+                  {
+                    database.insertData(imei, body.FromUserName[0])
+                    var xml = {xml: {
+                      ToUserName: body.FromUserName,
+                      FromUserName: body.ToUserName,
+                      CreateTime: + new Date(),
+                      MsgType: 'text',
+                      Content: '成功绑定设备：' + imei
+                    }};
+                    xml = builder.buildObject(xml);
+                    res.send(xml);
+                  }
+                });
+              }
+            });
+          }
+          else {
+            res.send('success');
+          }
         }
         else {
           res.send('');
@@ -134,6 +172,9 @@ function ResponseMessage(req, res) {
 
 router.get('/', CheckServer);
 router.post('/', ResponseMessage);
+
+
+
 
 // 事件处理器
 var EventFunction = {
@@ -184,7 +225,7 @@ var EventFunction = {
             FromUserName: result.ToUserName,
             CreateTime: + new Date(),
             MsgType: 'text',
-            Content: '回复"+imei号"以绑定设备。'
+            Content: '回复"+imei号"以绑定设备'
           }};
           xml = builder.buildObject(xml);
           res.send(xml);
@@ -202,7 +243,7 @@ var EventFunction = {
             FromUserName: result.ToUserName,
             CreateTime: + new Date(),
             MsgType: 'text',
-            Content: '解除绑定成功！'
+            Content: '解除绑定成功'
           }};
           xml = builder.buildObject(xml);
           res.send(xml);
@@ -214,31 +255,13 @@ var EventFunction = {
             FromUserName: result.ToUserName,
             CreateTime: + new Date(),
             MsgType: 'text',
-            Content: '暂未绑定设备。'
+            Content: '暂未绑定设备'
           }};
           xml = builder.buildObject(xml);
           res.send(xml);
         }
       });
     }
-
-
-
-    // var xml = {xml: {
-    //   ToUserName: result.FromUserName,
-    //   FromUserName: result.ToUserName,
-    //   CreateTime: + new Date(),
-    //   MsgType: 'news',
-    //   ArticleCount: 1,
-    //   Articles: {
-    //     item: {
-    //       Titles: "test",
-    //       Description: "test",
-    //       Url: "www.baidu.com"
-    //     }
-    //   }
-    // }};
-    // xml = builder.buildObject(xml);
   },
 
   VIEW: function () {
@@ -262,11 +285,11 @@ var EventFunction = {
 
 // 接受服务器推送
 router.post('/message', function (req, res) {
-  res.send("success");
+  res.send({code: 0});
   var imei = req.query.imei;
   var cmd = req.query.cmd;
 
-  database.selectData(imei, function (error, result) {
+  database.queryImei(imei, function (error, result) {
     // 如果有结果的话
     if (result)
     {

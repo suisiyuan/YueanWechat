@@ -30,7 +30,7 @@ exports.insertData = function (imei, openid, callback) {
   var collection = database.collection('users');
   var doc = {"imei":imei, "openid":openid, "addTime":new Date()};
 
-  exports.selectData(imei, function (error, result) {
+  exports.queryImei(imei, function (error, result) {
     if (!result)
     {
       collection.insertOne(doc, {w:1}, callback);
@@ -39,7 +39,7 @@ exports.insertData = function (imei, openid, callback) {
 };
 
 // 导出查询函数
-exports.selectData = function (imei, callback) {
+exports.queryImei = function (imei, callback) {
   var collection = database.collection('users');
   collection.findOne({imei:imei}, {fields:{openid:1}}, callback);
 };
