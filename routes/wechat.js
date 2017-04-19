@@ -294,7 +294,6 @@ router.post('/message', function (req, res) {
           var mapUrl = urlApi.format({
             protocol: "http",
             hostname: "test.xiaoan110.com",
-            port:3000,
             pathname: "/wechat/map",
             search: "?latitude=" + json.gps[0].lat + "&" + "longtitude=" + json.gps[0].lon
           });
