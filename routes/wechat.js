@@ -295,7 +295,7 @@ router.post('/message', function (req, res) {
             protocol: "http",
             hostname: "test.xiaoan110.com",
             pathname: "/wechat/map",
-            search: "?latitude=" + json.gps[0].lat + "&" + "longtitude=" + json.gps[0].lon
+            search: "?latitude=" + json.gps[0].lat + "&" + "longitude=" + json.gps[0].lon
           });
 
           (PushMessageFunction[cmd]||function(){})(mapUrl, result.openid, req, res);
