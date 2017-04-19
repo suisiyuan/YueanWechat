@@ -12,13 +12,14 @@ var builder = new XMLJS.Builder();
 
 var request = require('request');
 var moment = require('moment');
+var urlApi = require('url');
 
 
 var WechatAPI = require('wechat-api');
 var api = new WechatAPI(config.appid, config.appsecret);
 
-
 var database = require('../database');
+
 
 var menu = JSON.stringify(require('../menu.json'));
 api.createMenu(menu, function (error, result) {
@@ -27,7 +28,6 @@ api.createMenu(menu, function (error, result) {
 
 
 var templateId = 'TXE8zpyj1lYmkuJh8Dde3Q3jNg6z4G0JEcuaQUQOSPA';
-var url = 'http://weixin.qq.com/download';
 var data = {
   "first": {
     "value":"玥安消息推送！",
@@ -50,12 +50,6 @@ var data = {
     "color":"#173177"
   }
 };
-
-// api.sendTemplate('ob0aZ08sheyIxptKJRorw12ZxGgU', templateId, url, data, function(err, callback) {
-//   console.log(callback);
-// });
-
-
 
 
 // 检验服务器合法性
@@ -293,7 +287,22 @@ router.post('/message', function (req, res) {
     // 如果有结果的话
     if (result)
     {
-      (PushMessageFunction[cmd]||function(){})(result.openid, req, res);
+      var url = 'http://test.xiaoan110.com:8083/v1/history/';
+      request(url+imei, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+          var json = JSON.parse(body);
+          var mapUrl = urlApi.format({
+            protocol: "http",
+            hostname: "test.xiaoan110.com",
+            port:3000,
+            pathname: "/wechat/map",
+            search: "?latitude=" + json.gps[0].lat + "&" + "longtitude=" + json.gps[0].lon
+          });
+
+          (PushMessageFunction[cmd]||function(){})(mapUrl, result.openid, req, res);
+        }
+      });
+
     }
   });
 });
@@ -302,7 +311,7 @@ router.post('/message', function (req, res) {
 // 根据推送的命令发送相应的模板消息
 var PushMessageFunction = {
   // 自动落锁
-  0: function (openid, req, res) {
+  0: function (url, openid, req, res) {
     data.keyword1.value = "自动落锁";
     data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
     api.sendTemplate(openid, templateId, url, data, function(err, callback) {
@@ -310,7 +319,7 @@ var PushMessageFunction = {
     });
   },
   // 防盗开启
-  1: function (openid, req, res) {
+  1: function (url, openid, req, res) {
     data.keyword1.value = "防盗开启";
     ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
     api.sendTemplate(openid, templateId, url, data, function(err, callback) {
@@ -318,7 +327,7 @@ var PushMessageFunction = {
     });
   },
   // 防盗关闭
-  2: function (openid, req, res) {
+  2: function (url, openid, req, res) {
     data.keyword1.value = "防盗关闭";
     ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
     api.sendTemplate(openid, templateId, url, data, function(err, callback) {
@@ -326,7 +335,7 @@ var PushMessageFunction = {
     });
   },
   // 设备上线
-  3: function (openid, req, res) {
+  3: function (url, openid, req, res) {
     data.keyword1.value = "设备上线";
     ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
     api.sendTemplate(openid, templateId, url, data, function(err, callback) {
@@ -334,7 +343,7 @@ var PushMessageFunction = {
     });
   },
   // 设备离线
-  4: function (openid, req, res) {
+  4: function (url, openid, req, res) {
     data.keyword1.value = "设备离线";
     ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
     api.sendTemplate(openid, templateId, url, data, function(err, callback) {
@@ -342,7 +351,7 @@ var PushMessageFunction = {
     });
   },
   // 移动告警
-  5: function (openid, req, res) {
+  5: function (url, openid, req, res) {
     data.keyword1.value = "移动告警";
     ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
     api.sendTemplate(openid, templateId, url, data, function(err, callback) {
@@ -350,7 +359,7 @@ var PushMessageFunction = {
     });
   },
   // 断电告警
-  6: function (openid, req, res) {
+  6: function (url, openid, req, res) {
     data.keyword1.value = "断电告警";
     ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
     api.sendTemplate(openid, templateId, url, data, function(err, callback) {
@@ -358,7 +367,7 @@ var PushMessageFunction = {
     });
   },
   // 电门开启
-  7: function (openid, req, res) {
+  7: function (url, openid, req, res) {
     data.keyword1.value = "电门开启 ";
     ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
     api.sendTemplate(openid, templateId, url, data, function(err, callback) {
@@ -366,7 +375,7 @@ var PushMessageFunction = {
     });
   },
   // 电门关闭
-  8: function (openid, req, res) {
+  8: function (url, openid, req, res) {
     data.keyword1.value = "电门关闭";
     ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
     api.sendTemplate(openid, templateId, url, data, function(err, callback) {
@@ -374,7 +383,7 @@ var PushMessageFunction = {
     });
   },
   // 低电压告警
-  9: function (openid, req, res) {
+  9: function (url, openid, req, res) {
     data.keyword1.value = "低电压告警";
     ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
     api.sendTemplate(openid, templateId, url, data, function(err, callback) {

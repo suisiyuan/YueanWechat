@@ -12,17 +12,23 @@ var database;
 
 // 连接数据库
 MongoClient.connect(url, function(err, db) {
-  console.log('连接成功！');
-  // 将数据库赋值给全局变量
-  database = db;
+  if (err)
+  {
+    console.log(err);
+  }
+  else
+  {
+    console.log('连接成功！');
+    // 将数据库赋值给全局变量
+    database = db;
 
-  // 获取collection
-  var collection = database.collection('users');
-  // 创建唯一index
-  collection.createIndex({imei:1, wechat:2}, {unique:true, background:true, w:1, name:"test"}, function (error, result) {
+    // 获取collection
+    var collection = database.collection('users');
+    // 创建唯一index
+    collection.createIndex({imei:1, wechat:2}, {unique:true, background:true, w:1, name:"test"}, function (error, result) {
 
-  });
-
+    });
+  }
 });
 
 // 导出添加函数
