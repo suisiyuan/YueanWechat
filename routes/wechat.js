@@ -26,7 +26,7 @@ api.createMenu(menu, function (error, result) {
 
 });
 
-
+var gpsUrl = 'http://test.xiaoan110.com:8083/v1/history/';
 var templateId = 'TXE8zpyj1lYmkuJh8Dde3Q3jNg6z4G0JEcuaQUQOSPA';
 var data = {
   "first": {
@@ -106,43 +106,19 @@ function ResponseMessage(req, res) {
             database.queryImei(imei, function (error, queryResult) {
               if (queryResult)
               {
-                var xml = {xml: {
-                  ToUserName: body.FromUserName,
-                  FromUserName: body.ToUserName,
-                  CreateTime: + new Date(),
-                  MsgType: 'text',
-                  Content: '此设备已经被绑定'
-                }};
-                xml = builder.buildObject(xml);
-                res.send(xml);
+                replyText(body.FromUserName[0], body.ToUserName[0], '此设备已经被绑定', res);
               }
               else
               {
                 database.queryOpenid(body.FromUserName[0], function (error, result) {
                   if (result)
                   {
-                    var xml = {xml: {
-                      ToUserName: body.FromUserName,
-                      FromUserName: body.ToUserName,
-                      CreateTime: + new Date(),
-                      MsgType: 'text',
-                      Content: '已经绑定设备：' + result.imei
-                    }};
-                    xml = builder.buildObject(xml);
-                    res.send(xml);
+                    replyText(body.FromUserName[0], body.ToUserName[0], '已经绑定设备：' + result.imei, res);
                   }
                   else
                   {
-                    database.insertData(imei, body.FromUserName[0])
-                    var xml = {xml: {
-                      ToUserName: body.FromUserName,
-                      FromUserName: body.ToUserName,
-                      CreateTime: + new Date(),
-                      MsgType: 'text',
-                      Content: '成功绑定设备：' + imei
-                    }};
-                    xml = builder.buildObject(xml);
-                    res.send(xml);
+                    database.insertData(imei, body.FromUserName[0]);
+                    replyText(body.FromUserName[0], body.ToUserName[0], '成功绑定设备：' + imei, res);
                   }
                 });
               }
@@ -175,21 +151,12 @@ var EventFunction = {
   // 订阅处理
   subscribe: function(result, req, res) {
     console.log('subscribe');
-    var xml = {xml: {
-      ToUserName: result.FromUserName,
-      FromUserName: result.ToUserName,
-      CreateTime: + new Date(),
-      MsgType: 'text',
-      Content: '欢迎关注'
-    }};
-    xml = builder.buildObject(xml);
-    res.send(xml);
+    replyText(result.FromUserName[0], result.ToUserName[0], '欢迎关注', res);
   },
 
   // 退订处理
   unsubscribe: function(result, req, res) {
     console.log('unsubscribe');
-    console.log(result.FromUserName);
     res.send('success');
   },
 
@@ -202,27 +169,11 @@ var EventFunction = {
       database.queryOpenid(result.FromUserName[0], function (error, answer) {
         if (answer)
         {
-          var xml = {xml: {
-            ToUserName: result.FromUserName,
-            FromUserName: result.ToUserName,
-            CreateTime: + new Date(),
-            MsgType: 'text',
-            Content: '已经绑定设备：' + answer.imei
-          }};
-          xml = builder.buildObject(xml);
-          res.send(xml);
+          replyText(result.FromUserName[0], result.ToUserName[0], '已经绑定设备：' + answer.imei, res);
         }
         else
         {
-          var xml = {xml: {
-            ToUserName: result.FromUserName,
-            FromUserName: result.ToUserName,
-            CreateTime: + new Date(),
-            MsgType: 'text',
-            Content: '回复"+imei号"以绑定设备'
-          }};
-          xml = builder.buildObject(xml);
-          res.send(xml);
+          replyText(result.FromUserName[0], result.ToUserName[0], '回复"+imei号"以绑定设备', res);
         }
       });
     }
@@ -232,45 +183,14 @@ var EventFunction = {
         if (answer)
         {
           database.deleteOpenid(result.FromUserName[0]);
-          var xml = {xml: {
-            ToUserName: result.FromUserName,
-            FromUserName: result.ToUserName,
-            CreateTime: + new Date(),
-            MsgType: 'text',
-            Content: '解除绑定成功'
-          }};
-          xml = builder.buildObject(xml);
-          res.send(xml);
+          replyText(result.FromUserName[0], result.ToUserName[0], '解除绑定成功', res);
         }
         else
         {
-          var xml = {xml: {
-            ToUserName: result.FromUserName,
-            FromUserName: result.ToUserName,
-            CreateTime: + new Date(),
-            MsgType: 'text',
-            Content: '暂未绑定设备'
-          }};
-          xml = builder.buildObject(xml);
-          res.send(xml);
+          replyText(result.FromUserName[0], result.ToUserName[0], '暂未绑定设备', res);
         }
       });
     }
-  },
-
-  VIEW: function () {
-    console.log('view');
-  },
-  responseNews: function(body, res) {
-    var xml = {xml: {
-      ToUserName: body.FromUserName,
-      FromUserName: body.ToUserName,
-      CreateTime: + new Date(),
-      MsgType: 'text',
-      Content: 'test'
-    }};
-    xml = builder.buildObject(xml);
-    res.send(xml);
   }
 };
 
@@ -287,8 +207,8 @@ router.post('/message', function (req, res) {
     // 如果有结果的话
     if (result)
     {
-      var url = 'http://test.xiaoan110.com:8083/v1/history/';
-      request(url+imei, function (error, response, body) {
+
+      request(gpsUrl+imei, function (error, response, body) {
         if (!error && response.statusCode == 200) {
           var json = JSON.parse(body);
           var mapUrl = urlApi.format({
@@ -298,7 +218,7 @@ router.post('/message', function (req, res) {
             search: "?latitude=" + json.gps[0].lat + "&" + "longitude=" + json.gps[0].lon
           });
 
-          (PushMessageFunction[cmd]||function(){})(mapUrl, result.openid, req, res);
+          (PushMessageFunction[cmd]||function(){})(mapUrl, result.openid, res);
         }
       });
 
@@ -391,6 +311,19 @@ var PushMessageFunction = {
   }
 };
 
+
+// 被动回复文本
+function replyText(to, from, content, res) {
+  var xml = {xml: {
+    ToUserName: to,
+    FromUserName: from,
+    CreateTime: + new Date(),
+    MsgType: 'text',
+    Content: content
+  }};
+  xml = builder.buildObject(xml);
+  res.send(xml);
+}
 
 
 module.exports = router;
