@@ -8,7 +8,7 @@ var router = express.Router();
 
 router.get('/', function (req, res) {
   console.log(req.query);
-  res.render('map', {latitude: req.query.latitude, longitude: req.query.longitude});
+  res.render('map', {text: "test", latitude: req.query.latitude, longitude: req.query.longitude});
 });
 
 module.exports = router;
