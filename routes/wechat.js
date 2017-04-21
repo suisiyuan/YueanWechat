@@ -202,6 +202,9 @@ router.post('/message', function (req, res) {
   var imei = req.body.imei;
   var cmd = req.body.cmd;
 
+  res.send({"code": 0});
+
+
   database.queryImei(imei, function (error, result) {
     // 如果有结果的话
     if (result)
