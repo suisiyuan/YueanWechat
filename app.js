@@ -27,6 +27,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/wechat', wechat);
 app.use('/wechat/map', map);
 
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error('Not Found');
@@ -44,5 +45,9 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
+
+
+
 
 module.exports = app;

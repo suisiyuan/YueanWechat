@@ -6,6 +6,7 @@ var crypto = require('crypto');
 var config = require('../config');
 var router = express.Router();
 
+
 var XMLJS = require('xml2js');
 var parser = new XMLJS.Parser();
 var builder = new XMLJS.Builder();
@@ -196,18 +197,16 @@ var EventFunction = {
 
 
 
-
 // 接受服务器推送
 router.post('/message', function (req, res) {
   res.send({code: 0});
-  var imei = req.query.imei;
-  var cmd = req.query.cmd;
+  var imei = req.body.imei;
+  var cmd = req.body.cmd;
 
   database.queryImei(imei, function (error, result) {
     // 如果有结果的话
     if (result)
     {
-
       request(gpsUrl+imei, function (error, response, body) {
         if (!error && response.statusCode == 200) {
           var json = JSON.parse(body);
