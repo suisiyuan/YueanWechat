@@ -245,7 +245,7 @@ var PushMessageFunction = {
   // 防盗开启
   1: function (url, openid, req, res) {
     data.keyword1.value = "防盗开启";
-    ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
+    data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
     api.sendTemplate(openid, templateId, url, data, function(err, callback) {
       console.log(callback);
     });
@@ -253,7 +253,7 @@ var PushMessageFunction = {
   // 防盗关闭
   2: function (url, openid, req, res) {
     data.keyword1.value = "防盗关闭";
-    ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
+    data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
     api.sendTemplate(openid, templateId, url, data, function(err, callback) {
       console.log(callback);
     });
@@ -261,7 +261,7 @@ var PushMessageFunction = {
   // 设备上线
   3: function (url, openid, req, res) {
     data.keyword1.value = "设备上线";
-    ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
+    data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
     api.sendTemplate(openid, templateId, url, data, function(err, callback) {
       console.log(callback);
     });
@@ -269,7 +269,7 @@ var PushMessageFunction = {
   // 设备离线
   4: function (url, openid, req, res) {
     data.keyword1.value = "设备离线";
-    ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
+    data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
     api.sendTemplate(openid, templateId, url, data, function(err, callback) {
       console.log(callback);
     });
@@ -277,7 +277,7 @@ var PushMessageFunction = {
   // 移动告警
   5: function (url, openid, req, res) {
     data.keyword1.value = "移动告警";
-    ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
+    data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
     api.sendTemplate(openid, templateId, url, data, function(err, callback) {
       console.log(callback);
     });
@@ -285,7 +285,7 @@ var PushMessageFunction = {
   // 断电告警
   6: function (url, openid, req, res) {
     data.keyword1.value = "断电告警";
-    ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
+    data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
     api.sendTemplate(openid, templateId, url, data, function(err, callback) {
       console.log(callback);
     });
@@ -293,7 +293,7 @@ var PushMessageFunction = {
   // 电门开启
   7: function (url, openid, req, res) {
     data.keyword1.value = "电门开启 ";
-    ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
+    data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
     api.sendTemplate(openid, templateId, url, data, function(err, callback) {
       console.log(callback);
     });
@@ -301,7 +301,7 @@ var PushMessageFunction = {
   // 电门关闭
   8: function (url, openid, req, res) {
     data.keyword1.value = "电门关闭";
-    ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
+    data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
     api.sendTemplate(openid, templateId, url, data, function(err, callback) {
       console.log(callback);
     });
@@ -309,7 +309,7 @@ var PushMessageFunction = {
   // 低电压告警
   9: function (url, openid, req, res) {
     data.keyword1.value = "低电压告警";
-    ddata.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
+    data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
     api.sendTemplate(openid, templateId, url, data, function(err, callback) {
       console.log(callback);
     });
