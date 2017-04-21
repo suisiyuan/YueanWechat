@@ -199,7 +199,6 @@ var EventFunction = {
 
 // 接受服务器推送
 router.post('/message', function (req, res) {
-  res.send({code: 0});
   var imei = req.body.imei;
   var cmd = req.body.cmd;
 
@@ -218,6 +217,10 @@ router.post('/message', function (req, res) {
           });
 
           (PushMessageFunction[cmd]||function(){})(mapUrl, result.openid, res);
+        }
+        else
+        {
+          (PushMessageFunction[cmd]||function(){})(null, result.openid, res);
         }
       });
 
