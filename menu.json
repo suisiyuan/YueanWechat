@@ -1,18 +1,9 @@
 {
   "button":[
     {
+      "type": "click",
       "name": "账号管理",
-      "sub_button":[
-        {
-          "type":"click",
-          "name":"绑定账号",
-          "key":"BIND"
-        },
-        {
-          "type":"click",
-          "name":"解除绑定",
-          "key":"UNBIND"
-        }]
+      "key": "ACCOUNT_MANAGEMENT"
     }
   ]
 }

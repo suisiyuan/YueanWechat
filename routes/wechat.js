@@ -13,7 +13,6 @@ var builder = new XMLJS.Builder();
 
 var request = require('request');
 var moment = require('moment');
-var urlApi = require('url');
 
 
 var WechatAPI = require('wechat-api');
@@ -27,8 +26,8 @@ api.createMenu(menu, function (error, result) {
 
 });
 
-var gpsUrl = 'http://test.xiaoan110.com:8083/v1/history/';
-var templateId = 'TXE8zpyj1lYmkuJh8Dde3Q3jNg6z4G0JEcuaQUQOSPA';
+
+
 var data = {
   "first": {
     "value":"玥安消息推送！",
@@ -98,36 +97,7 @@ function ResponseMessage(req, res) {
         }
         // 如果是文本
         else if (messageType === 'text') {
-          // EventFunction.responseNews(body, res);
-          var content = body.Content[0];
-          var matchResult = content.match(/\+\d{15}/);
-          if (matchResult)
-          {
-            var imei = content.substring(matchResult.index+1);
-            database.queryImei(imei, function (error, queryResult) {
-              if (queryResult)
-              {
-                replyText(body.FromUserName[0], body.ToUserName[0], '此设备已经被绑定', res);
-              }
-              else
-              {
-                database.queryOpenid(body.FromUserName[0], function (error, result) {
-                  if (result)
-                  {
-                    replyText(body.FromUserName[0], body.ToUserName[0], '已经绑定设备：' + result.imei, res);
-                  }
-                  else
-                  {
-                    database.insertData(imei, body.FromUserName[0]);
-                    replyText(body.FromUserName[0], body.ToUserName[0], '成功绑定设备：' + imei, res);
-                  }
-                });
-              }
-            });
-          }
-          else {
-            res.send('success');
-          }
+          res.send('success');
         }
         else {
           res.send('');
@@ -143,7 +113,6 @@ function ResponseMessage(req, res) {
 
 router.get('/', CheckServer);
 router.post('/', ResponseMessage);
-
 
 
 
@@ -163,34 +132,32 @@ var EventFunction = {
 
   // 点击事件
   CLICK: function(result, req, res) {
-    console.log('click');
 
-    if (result.EventKey[0] === 'BIND')
+    if (result.EventKey[0] === 'ACCOUNT_MANAGEMENT')
     {
-      database.queryOpenid(result.FromUserName[0], function (error, answer) {
-        if (answer)
-        {
-          replyText(result.FromUserName[0], result.ToUserName[0], '已经绑定设备：' + answer.imei, res);
+      var bindUrl = config.localUrl + "/wechat/users/bind" + "?openid=" + result.FromUserName[0];
+      var unbindUrl = config.localUrl + "/wechat/users/unbind" + "?openid=" + result.FromUserName[0];
+      var xml = {xml: {
+        ToUserName: result.FromUserName[0],
+        FromUserName: result.ToUserName[0],
+        CreateTime: + new Date(),
+        MsgType: 'news',
+        ArticleCount: 2,
+        Articles: {
+          item: [
+            {
+              Title: "绑定账号",
+              Url: bindUrl
+            },
+            {
+              Title: "解除绑定",
+              Url: unbindUrl
+            }
+          ]
         }
-        else
-        {
-          replyText(result.FromUserName[0], result.ToUserName[0], '回复"+imei号"以绑定设备', res);
-        }
-      });
-    }
-    else if (result.EventKey[0] === 'UNBIND')
-    {
-      database.queryOpenid(result.FromUserName[0], function (error, answer) {
-        if (answer)
-        {
-          database.deleteOpenid(result.FromUserName[0]);
-          replyText(result.FromUserName[0], result.ToUserName[0], '解除绑定成功', res);
-        }
-        else
-        {
-          replyText(result.FromUserName[0], result.ToUserName[0], '暂未绑定设备', res);
-        }
-      });
+      }};
+      xml = builder.buildObject(xml);
+      res.send(xml);
     }
   }
 };
@@ -204,20 +171,14 @@ router.post('/message', function (req, res) {
 
   res.send({"code": 0});
 
-
   database.queryImei(imei, function (error, result) {
     // 如果有结果的话
     if (result)
     {
-      request(gpsUrl+imei, function (error, response, body) {
+      request(config.gpsUrl+imei, function (error, response, body) {
         if (!error && response.statusCode == 200) {
           var json = JSON.parse(body);
-          var mapUrl = urlApi.format({
-            protocol: "http",
-            hostname: "test.xiaoan110.com",
-            pathname: "/wechat/map",
-            search: "?latitude=" + json.gps[0].lat + "&" + "longitude=" + json.gps[0].lon
-          });
+          var mapUrl = config.localUrl + "/wechat/map" + "?latitude=" + json.gps[0].lat + "&" + "longitude=" + json.gps[0].lon;
 
           (PushMessageFunction[cmd]||function(){})(mapUrl, result.openid, res);
         }
@@ -238,7 +199,7 @@ var PushMessageFunction = {
   0: function (url, openid, req, res) {
     data.keyword1.value = "自动落锁";
     data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
-    api.sendTemplate(openid, templateId, url, data, function(err, callback) {
+    api.sendTemplate(openid, config.templateId, url, data, function(err, callback) {
       console.log(callback);
     });
   },
@@ -246,7 +207,7 @@ var PushMessageFunction = {
   1: function (url, openid, req, res) {
     data.keyword1.value = "防盗开启";
     data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
-    api.sendTemplate(openid, templateId, url, data, function(err, callback) {
+    api.sendTemplate(openid, config.templateId, url, data, function(err, callback) {
       console.log(callback);
     });
   },
@@ -254,7 +215,7 @@ var PushMessageFunction = {
   2: function (url, openid, req, res) {
     data.keyword1.value = "防盗关闭";
     data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
-    api.sendTemplate(openid, templateId, url, data, function(err, callback) {
+    api.sendTemplate(openid, config.templateId, url, data, function(err, callback) {
       console.log(callback);
     });
   },
@@ -262,7 +223,7 @@ var PushMessageFunction = {
   3: function (url, openid, req, res) {
     data.keyword1.value = "设备上线";
     data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
-    api.sendTemplate(openid, templateId, url, data, function(err, callback) {
+    api.sendTemplate(openid, config.templateId, url, data, function(err, callback) {
       console.log(callback);
     });
   },
@@ -270,7 +231,7 @@ var PushMessageFunction = {
   4: function (url, openid, req, res) {
     data.keyword1.value = "设备离线";
     data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
-    api.sendTemplate(openid, templateId, url, data, function(err, callback) {
+    api.sendTemplate(openid, config.templateId, url, data, function(err, callback) {
       console.log(callback);
     });
   },
@@ -278,7 +239,7 @@ var PushMessageFunction = {
   5: function (url, openid, req, res) {
     data.keyword1.value = "移动告警";
     data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
-    api.sendTemplate(openid, templateId, url, data, function(err, callback) {
+    api.sendTemplate(openid, config.templateId, url, data, function(err, callback) {
       console.log(callback);
     });
   },
@@ -286,7 +247,7 @@ var PushMessageFunction = {
   6: function (url, openid, req, res) {
     data.keyword1.value = "断电告警";
     data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
-    api.sendTemplate(openid, templateId, url, data, function(err, callback) {
+    api.sendTemplate(openid, config.templateId, url, data, function(err, callback) {
       console.log(callback);
     });
   },
@@ -294,7 +255,7 @@ var PushMessageFunction = {
   7: function (url, openid, req, res) {
     data.keyword1.value = "电门开启 ";
     data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
-    api.sendTemplate(openid, templateId, url, data, function(err, callback) {
+    api.sendTemplate(openid, config.templateId, url, data, function(err, callback) {
       console.log(callback);
     });
   },
@@ -302,7 +263,7 @@ var PushMessageFunction = {
   8: function (url, openid, req, res) {
     data.keyword1.value = "电门关闭";
     data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
-    api.sendTemplate(openid, templateId, url, data, function(err, callback) {
+    api.sendTemplate(openid, config.templateId, url, data, function(err, callback) {
       console.log(callback);
     });
   },
@@ -310,7 +271,7 @@ var PushMessageFunction = {
   9: function (url, openid, req, res) {
     data.keyword1.value = "低电压告警";
     data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
-    api.sendTemplate(openid, templateId, url, data, function(err, callback) {
+    api.sendTemplate(openid, config.templateId, url, data, function(err, callback) {
       console.log(callback);
     });
   }
@@ -329,6 +290,5 @@ function replyText(to, from, content, res) {
   xml = builder.buildObject(xml);
   res.send(xml);
 }
-
 
 module.exports = router;

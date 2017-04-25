@@ -6,7 +6,7 @@
     <style type="text/css">
         body, html,#allmap {width: 100%;height: 100%;overflow: hidden;margin:0;font-family:"微软雅黑";}
     </style>
-    <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=NWLh24SxdIZZO2fLQHuKW5TuBOTkrx6A"></script>
+    <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=<%= key %>"></script>
     <title>获取位置</title>
 </head>
 <body>
@@ -24,8 +24,6 @@
   map.centerAndZoom(new BMap.Point(<%= longitude%>, <%=latitude%>), 19);  // 初始化地图,设置中心点坐标和地图级别
   map.addOverlay(marker);
 
-
   map.addControl(new BMap.MapTypeControl());   //添加地图类型控件
-//  map.setCurrentCity("北京");          // 设置地图显示的城市 此项是必须设置的
   map.enableScrollWheelZoom(true);     //开启鼠标滚轮缩放
 </script>

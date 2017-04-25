@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+        <title><%= title %></title>
+        <style>
+            body {text-align: center;font: normal 100% Helvetica, Arial, sans-serif;}
+        </style>
+    </head>
+
+    <body>
+        <p><%= content %></p>
+        <button onclick="WeixinJSBridge.call('closeWindow');">关闭</button>
+    </body>
+</html>
