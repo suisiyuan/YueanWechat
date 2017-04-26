@@ -3,7 +3,7 @@
  */
 
 module.exports = {
-  // 微信l
+  // 微信
   appid: 'wx15fd8b155106fca0',
   appsecret: 'c4e209ff129ed3b58c93f4dbf967e535',
   token: 'suisiyuan',
@@ -14,6 +14,6 @@ module.exports = {
   baiduApiKey: 'NWLh24SxdIZZO2fLQHuKW5TuBOTkrx6A',
 
   // 服务器配置
-  localUrl: 'http://a96a9107.ngrok.io',
+  localUrl: 'http://wechat.xiaoantech.com',
   gpsUrl: 'http://test.xiaoan110.com:8083/v1/history/'
 };
