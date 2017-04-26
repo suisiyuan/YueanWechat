@@ -10,6 +10,7 @@ module.exports = {
   checkSignature: true,
   templateId: 'kX8DvR-Mwp_oqsyswbi1drMh1OQa2izUTDRTCCvwQHg',
 
+
   // 百度
   baiduApiKey: 'NWLh24SxdIZZO2fLQHuKW5TuBOTkrx6A',
 

@@ -5,7 +5,7 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
-
+var test = require('./routes/test');
 var wechat = require('./routes/wechat');
 var users = require('./routes/users');
 var map = require('./routes/map');
@@ -24,7 +24,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-
+app.use('/test', test);
 app.use('/wechat', wechat);
 app.use('/wechat/users', users);
 app.use('/wechat/map', map);

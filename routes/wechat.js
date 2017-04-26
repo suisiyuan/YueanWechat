@@ -21,11 +21,20 @@ var api = new WechatAPI(config.appid, config.appsecret);
 var database = require('../database');
 
 
-var menu = JSON.stringify(require('../menu.json'));
-api.createMenu(menu, function (error, result) {
 
+var menu = require('../menu.json');
+var oauthUrl = 'https://open.weixin.qq.com/connect/oauth2/authorize?'
+                + 'appid=' + config.appid
+                + '&redirect_uri=' + config.localUrl + '/wechat/map/realtime'
+                + '&response_type=code'
+                + '&scope=snsapi_base';
+menu.button[0].sub_button[1].url = oauthUrl;
+api.createMenu(require('../menu.json'), function (error, result) {
+  if (error)
+    console.log(error);
+  else
+    console.log(result);
 });
-
 
 
 var data = {
@@ -133,7 +142,7 @@ var EventFunction = {
   // 点击事件
   CLICK: function(result, req, res) {
 
-    if (result.EventKey[0] === 'ACCOUNT_MANAGEMENT')
+    if (result.EventKey[0] === 'DEVICE_MANAGEMENT')
     {
       var bindUrl = config.localUrl + "/wechat/users/bind" + "?openid=" + result.FromUserName[0];
       var unbindUrl = config.localUrl + "/wechat/users/unbind" + "?openid=" + result.FromUserName[0];
