@@ -4,14 +4,14 @@
       "name": "用户中心",
       "sub_button": [
         {
-          "type": "click",
+          "type": "view",
           "name": "设备管理",
-          "key": "DEVICE_MANAGEMENT"
+          "url": ""
         },
         {
           "type": "view",
           "name": "实时定位",
-          "url": "http://www.baidu.com"
+          "url": ""
         }
       ]
     }

@@ -10,10 +10,27 @@ var request = require('request');
 
 var database = require('../database');
 
-
 router.get('/', function (req, res) {
-  console.log(req.query);
-  res.render('map', {key: config.baiduApiKey, latitude: req.query.latitude, longitude: req.query.longitude});
+  var openid = req.query.openid;
+  database.queryOpenid(openid, function (error, result) {
+    if (result)
+    {
+      request(config.gpsUrl+result.imei, function (error, response, body) {
+        if (!error && response.statusCode === 200) {
+          var json = JSON.parse(body);
+          res.render('map', {key: config.baiduApiKey, imei: result.imei, latitude: json.gps[0].lat, longitude: json.gps[0].lon})
+        }
+        else
+        {
+          res.render('message', {title: "获取位置", content: "该设备没有位置信息！"})
+        }
+      });
+    }
+    else
+    {
+      res.render('message', {title: "获取位置", content: "请先绑定设备！"});
+    }
+  });
 });
 
 // 实时位置信息
@@ -31,9 +48,10 @@ router.get('/realtime', function (req, res) {
         if (result)
         {
           request(config.gpsUrl+result.imei, function (error, response, body) {
-            if (!error && response.statusCode == 200) {
+            if (!error && response.statusCode === 200) {
               var json = JSON.parse(body);
-              res.render('map', {key: config.baiduApiKey, latitude: json.gps[0].lat, longitude: json.gps[0].lon})
+              console.log(json);
+              res.render('map', {key: config.baiduApiKey, imei: result.imei, latitude: json.gps[0].lat, longitude: json.gps[0].lon})
             }
             else
             {
@@ -46,13 +64,29 @@ router.get('/realtime', function (req, res) {
           res.render('message', {title: "获取位置", content: "请先绑定设备！"});
         }
       });
-
-
-      // res.render('message', {title: "获取openid",content: data.openid});
     }
     else
     {
       res.render('message', {title: "获取openid",content: "获取失败"});
+    }
+  });
+});
+
+//
+router.get('/position', function (req, res, next) {
+  var imei = req.query.imei;
+  request(config.gpsUrl+imei, function (error, response, body) {
+    if (!error && response.statusCode === 200) {
+      var json = JSON.parse(body);
+      var data = {
+        longitude: json.gps[0].lon,
+        latitude: json.gps[0].lat
+      };
+      res.send(JSON.stringify(data));
+    }
+    else
+    {
+      res.render('error');
     }
   });
 });

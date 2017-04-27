@@ -9,10 +9,17 @@
     </head>
 
     <body>
-        <form action=<%= url %> method="post">
-            <br>
-            imei号: <input type="text" name="imei"><br><br>
-            <input type="submit" value="提交">
-        </form>
+        <% if (isBound) { %>
+            <form action=<%= url %> method="post">
+                <p><%= content %></p>
+                <input type="submit" value="解除绑定">
+            </form>
+        <% } else {%>
+            <form action=<%= url %> method="post">
+                <p><%= content %></p>
+                imei号: <input type="text" name="imei"><br><br>
+                <input type="submit" value="绑定设备">
+            </form>
+        <% } %>
     </body>
 </html>

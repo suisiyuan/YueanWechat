@@ -22,13 +22,20 @@ var database = require('../database');
 
 
 
+function makeOauthUrl(url) {
+  var oauthUrl = 'https://open.weixin.qq.com/connect/oauth2/authorize?'
+    + 'appid=' + config.appid
+    + '&redirect_uri=' + url
+    + '&response_type=code'
+    + '&scope=snsapi_base';
+  return oauthUrl;
+}
+
+
 var menu = require('../menu.json');
-var oauthUrl = 'https://open.weixin.qq.com/connect/oauth2/authorize?'
-                + 'appid=' + config.appid
-                + '&redirect_uri=' + config.localUrl + '/wechat/map/realtime'
-                + '&response_type=code'
-                + '&scope=snsapi_base';
-menu.button[0].sub_button[1].url = oauthUrl;
+menu.button[0].sub_button[0].url = makeOauthUrl(config.localUrl + '/wechat/users');
+menu.button[0].sub_button[1].url = makeOauthUrl(config.localUrl + '/wechat/map/realtime');
+
 api.createMenu(require('../menu.json'), function (error, result) {
   if (error)
     console.log(error);
@@ -37,28 +44,39 @@ api.createMenu(require('../menu.json'), function (error, result) {
 });
 
 
-var data = {
-  "first": {
-    "value":"玥安消息推送！",
-    "color":"#173177"
-  },
-  "keyword1":{
-    "value":"报警",
-    "color":"#173177"
-  },
-  "keyword2": {
-    "value":"2017年4月10日",
-    "color":"#173177"
-  },
-  "keyword3": {
-    "value":"",
-    "color":"#173177"
-  },
-  "remark":{
-    "value":"欢迎您关注玥安！",
-    "color":"#173177"
-  }
+// 推送消息命令
+var pushCmd = new Array(10);
+pushCmd[0] = "自动落锁";
+pushCmd[1] = "防盗开启";
+pushCmd[2] = "防盗关闭";
+pushCmd[3] = "设备上线";
+pushCmd[4] = "设备离线";
+pushCmd[5] = "移动告警";
+pushCmd[6] = "断电告警";
+pushCmd[7] = "电门开启";
+pushCmd[8] = "电门关闭";
+pushCmd[9] = "低电压告警";
+
+// 推送内容
+var pushContent = {
+   "keyword1":{
+     "value":"",
+     "color":"#173177"
+   },
+   "keyword2": {
+     "value":"",
+     "color":"#173177"
+   },
+   "keyword3": {
+     "value":"",
+     "color":"#173177"
+   },
+   "remark":{
+     "value":"欢迎您关注玥安！",
+     "color":"#173177"
+   }
 };
+
 
 
 // 检验服务器合法性
@@ -130,7 +148,7 @@ var EventFunction = {
   // 订阅处理
   subscribe: function(result, req, res) {
     console.log('subscribe');
-    replyText(result.FromUserName[0], result.ToUserName[0], '欢迎关注', res);
+    res.send('success');
   },
 
   // 退订处理
@@ -141,150 +159,50 @@ var EventFunction = {
 
   // 点击事件
   CLICK: function(result, req, res) {
+    res.send('success');
+  },
 
-    if (result.EventKey[0] === 'DEVICE_MANAGEMENT')
-    {
-      var bindUrl = config.localUrl + "/wechat/users/bind" + "?openid=" + result.FromUserName[0];
-      var unbindUrl = config.localUrl + "/wechat/users/unbind" + "?openid=" + result.FromUserName[0];
-      var xml = {xml: {
-        ToUserName: result.FromUserName[0],
-        FromUserName: result.ToUserName[0],
-        CreateTime: + new Date(),
-        MsgType: 'news',
-        ArticleCount: 2,
-        Articles: {
-          item: [
-            {
-              Title: "绑定账号",
-              Url: bindUrl
-            },
-            {
-              Title: "解除绑定",
-              Url: unbindUrl
-            }
-          ]
-        }
-      }};
-      xml = builder.buildObject(xml);
-      res.send(xml);
-    }
+  // 浏览事件
+  VIEW: function (result, req, res) {
+    res.send('success');
   }
-};
 
+};
 
 
 // 接受服务器推送
 router.post('/message', function (req, res) {
   var imei = req.body.imei;
-  var cmd = req.body.cmd;
+  var cmd = parseInt(req.body.cmd, 10);
 
   res.send({"code": 0});
 
   database.queryImei(imei, function (error, result) {
-    // 如果有结果的话
+    // 如果imei号被微信用户绑定
     if (result)
     {
-      request(config.gpsUrl+imei, function (error, response, body) {
-        if (!error && response.statusCode == 200) {
-          var json = JSON.parse(body);
-          var mapUrl = config.localUrl + "/wechat/map" + "?latitude=" + json.gps[0].lat + "&" + "longitude=" + json.gps[0].lon;
-
-          (PushMessageFunction[cmd]||function(){})(mapUrl, result.openid, res);
+      // 推送用户
+      var openid = result.openid;
+      // 报警推送的详细页面
+      var mapUrl = config.localUrl + "/wechat/map" + "?openid=" + openid;
+      // 推送内容
+      var content = pushContent;
+      content.keyword1.value = pushCmd[cmd];
+      content.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
+      // 推送消息
+      api.sendTemplate(openid, config.templateId, mapUrl, content, function (err, result) {
+        if (err)
+        {
+          console.log(err);
         }
         else
         {
-          (PushMessageFunction[cmd]||function(){})(null, result.openid, res);
+          console.log(result);
         }
       });
-
     }
   });
 });
-
-
-// 根据推送的命令发送相应的模板消息
-var PushMessageFunction = {
-  // 自动落锁
-  0: function (url, openid, req, res) {
-    data.keyword1.value = "自动落锁";
-    data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
-    api.sendTemplate(openid, config.templateId, url, data, function(err, callback) {
-      console.log(callback);
-    });
-  },
-  // 防盗开启
-  1: function (url, openid, req, res) {
-    data.keyword1.value = "防盗开启";
-    data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
-    api.sendTemplate(openid, config.templateId, url, data, function(err, callback) {
-      console.log(callback);
-    });
-  },
-  // 防盗关闭
-  2: function (url, openid, req, res) {
-    data.keyword1.value = "防盗关闭";
-    data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
-    api.sendTemplate(openid, config.templateId, url, data, function(err, callback) {
-      console.log(callback);
-    });
-  },
-  // 设备上线
-  3: function (url, openid, req, res) {
-    data.keyword1.value = "设备上线";
-    data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
-    api.sendTemplate(openid, config.templateId, url, data, function(err, callback) {
-      console.log(callback);
-    });
-  },
-  // 设备离线
-  4: function (url, openid, req, res) {
-    data.keyword1.value = "设备离线";
-    data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
-    api.sendTemplate(openid, config.templateId, url, data, function(err, callback) {
-      console.log(callback);
-    });
-  },
-  // 移动告警
-  5: function (url, openid, req, res) {
-    data.keyword1.value = "移动告警";
-    data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
-    api.sendTemplate(openid, config.templateId, url, data, function(err, callback) {
-      console.log(callback);
-    });
-  },
-  // 断电告警
-  6: function (url, openid, req, res) {
-    data.keyword1.value = "断电告警";
-    data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
-    api.sendTemplate(openid, config.templateId, url, data, function(err, callback) {
-      console.log(callback);
-    });
-  },
-  // 电门开启
-  7: function (url, openid, req, res) {
-    data.keyword1.value = "电门开启 ";
-    data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
-    api.sendTemplate(openid, config.templateId, url, data, function(err, callback) {
-      console.log(callback);
-    });
-  },
-  // 电门关闭
-  8: function (url, openid, req, res) {
-    data.keyword1.value = "电门关闭";
-    data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
-    api.sendTemplate(openid, config.templateId, url, data, function(err, callback) {
-      console.log(callback);
-    });
-  },
-  // 低电压告警
-  9: function (url, openid, req, res) {
-    data.keyword1.value = "低电压告警";
-    data.keyword2.value = moment().format('YYYY年MM月DD日 HH:mm:ss');
-    api.sendTemplate(openid, config.templateId, url, data, function(err, callback) {
-      console.log(callback);
-    });
-  }
-};
 
 
 // 被动回复文本
