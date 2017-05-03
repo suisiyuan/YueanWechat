@@ -17,11 +17,22 @@
 
 
 <script type="text/javascript">
-  var map = new BMap.Map("allmap");
-  map.centerAndZoom(new BMap.Point(<%= longitude%>, <%=latitude%>), 19);
+  var point = new BMap.Point(<%= longitude%>, <%=latitude%>);
 
-  var marker = new BMap.Marker(new BMap.Point(<%= longitude%>, <%=latitude%>));
+  var map = new BMap.Map("allmap");
+  map.centerAndZoom(point, 19);
+  var marker = new BMap.Marker(point);
   map.addOverlay(marker);
+//  var label = new BMap.Label("test",{offset:new BMap.Size(20,-10)});
+//  marker.setLabel(label);
+
+  convertCoord(point, function (data) {
+    if (data.status === 0)
+    {
+      map.panTo(data.points[0]);
+      marker.setPosition(data.points[0]);
+    }
+  })
 
   window.setInterval(updatePosition, 3000);
   function updatePosition() {
@@ -29,9 +40,24 @@
       var json = JSON.parse(data);
       var longitude = json.longitude;
       var latitude = json.latitude;
-      map.panTo(new BMap.Point(longitude, latitude));
-      marker.setPosition(new BMap.Point(longitude, latitude));
+
+      convertCoord(new BMap.Point(longitude, latitude), function (data) {
+        if (data.status === 0)
+        {
+          map.panTo(data.points[0]);
+          marker.setPosition(data.points[0]);
+        }
+      });
     });
   }
+
+  // 坐标转换
+  function convertCoord(point, callback) {
+    var convertor = new BMap.Convertor();
+    var pointArr = [];
+    pointArr.push(point);
+    convertor.translate(pointArr, 1, 5, callback);
+  }
+
 
 </script>
